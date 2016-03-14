@@ -28,6 +28,14 @@ extension CMMotionManager {
     }
 }
 
+extension UIView {
+    public var rx_backgroundColor: AnyObserver<UIColor> {
+        return UIBindingObserver(UIElement: self) { view, color in
+            view.backgroundColor = color
+        }.asObserver()
+    }
+}
+
 class ViewController: UIViewController {
     
     let manager = CMMotionManager()
@@ -65,9 +73,11 @@ class ViewController: UIViewController {
         
         Observable.of(hsb_low, hsb_high)
             .merge()
-            .subscribeNext { [weak self] (h, s, b) in
-                self?.view.backgroundColor = UIColor(hue: h, saturation: s, brightness: b, alpha: 1)
-            }.addDisposableTo(disposeBag)
+            .map {
+                UIColor(hue: $0, saturation: $1, brightness: $2, alpha: 1)
+            }
+            .bindTo(self.view.rx_backgroundColor)
+            .addDisposableTo(disposeBag)
     }
 
     override func didReceiveMemoryWarning() {
