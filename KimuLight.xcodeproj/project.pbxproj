@@ -17,6 +17,7 @@
 
 /* Begin PBXFileReference section */
 		36D8B6A275A1034D36149AD6 /* Pods_KimuLight.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_KimuLight.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		37B0A7E91C96B35900067035 /* MyPlayground.playground */ = {isa = PBXFileReference; lastKnownFileType = file.playground; path = MyPlayground.playground; sourceTree = "<group>"; };
 		37EF256B1C93D4220005E84A /* KimuLight.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KimuLight.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		37EF256E1C93D4220005E84A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		37EF25701C93D4220005E84A /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -73,6 +74,7 @@
 				37EF25701C93D4220005E84A /* ViewController.swift */,
 				37EF25721C93D4220005E84A /* Main.storyboard */,
 				37EF25751C93D4220005E84A /* Assets.xcassets */,
+				37B0A7E91C96B35900067035 /* MyPlayground.playground */,
 				37EF25771C93D4220005E84A /* LaunchScreen.storyboard */,
 				37EF257A1C93D4220005E84A /* Info.plist */,
 			);
