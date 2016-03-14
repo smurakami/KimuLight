@@ -8,57 +8,66 @@
 
 import UIKit
 import CoreMotion
+import RxCocoa
+import RxSwift
 
-//
-//
-//func ** (left: Double, right: Double) {
-//    return pow(left, right)
-//}
-
-func norm(x: Double, _ y: Double, _ z: Double) -> Double {
-    return sqrt(x * x + y * y + z * z)
+extension CMMotionManager {
+    var rx_deviceMotionUpdated: Observable<CMDeviceMotion> {
+        return Observable.create { observer in
+            self.startDeviceMotionUpdatesToQueue(NSOperationQueue.mainQueue(), withHandler: { dataOrNil, errorOrNil in
+                if let error = errorOrNil {
+                    observer.onError(error)
+                } else if let data = dataOrNil {
+                    observer.onNext(data)
+                } else {
+                    observer.onError(NSError(domain: "Undefined Error", code: 0, userInfo: nil))
+                }
+            })
+            return NopDisposable.instance
+        }
+    }
 }
 
 class ViewController: UIViewController {
     
     let manager = CMMotionManager()
-
+    
+    let disposeBag = DisposeBag()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        manager.startDeviceMotionUpdatesToQueue(NSOperationQueue.mainQueue(), withHandler: { [weak self] data, error in
-            guard let accel = data?.userAcceleration else { return }
-            let n = CGFloat(norm(accel.x, accel.y, accel.z))
-            let h :CGFloat
-            let s :CGFloat
-            let b :CGFloat
-            let th: CGFloat = 0.15
-            if n < th {
-                h = 0
-                s = n / th
-                b = CGFloat(1)
-            } else {
-                let h_ = (n - th) / (1 - th)
-                h = h_ - floor(h_)
-                s = CGFloat(1)
-                b = CGFloat(1)
-            }
-            
-            self?.view.backgroundColor = UIColor(hue: h, saturation: s, brightness: b, alpha: 1)
-            
-            
-//            guard let accel = data?.userAcceleration else { return }
-//            let r = CGFloat(1 - accel.x)
-//            let g = CGFloat(1 - accel.y)
-//            let b = CGFloat(1 - accel.z)
-//            self?.view.backgroundColor = UIColor(red: r, green: g, blue: b, alpha: 1)
-            
-//            self?.view.backgroundColor = UIColor(
-//                red: CGFloat(accel.x),
-//                green: CGFloat(accel.y),
-//                blue: CGFloat(accel.z),
-//                alpha: 1)
-        })
+        // utils
+        func norm3(x: Double, _ y: Double, _ z: Double) -> Double {
+            return sqrt(x * x + y * y + z * z)
+        }
+        func norm(v: CMAcceleration) -> Double {
+            return norm3(v.x, v.y, v.z)
+        }
+        func mod(x: CGFloat, _ n: CGFloat) -> CGFloat {
+            let x_ = x / n
+            return (x_ - floor(x_)) * n
+        }
+        // stream
+        let th: CGFloat = 0.15
+        let maxValue: CGFloat = 1
+        let accelNorm = manager.rx_deviceMotionUpdated
+            .map { $0.userAcceleration }
+            .map { norm($0) }
+            .map { CGFloat($0) }
+            .shareReplay(1)
+        let hsb_low = accelNorm
+            .filter { $0 < th }
+            .map { (CGFloat(0), $0 / th, CGFloat(1)) }
+        let hsb_high = accelNorm
+            .filter { $0 >= th }
+            .map { (mod($0, maxValue), CGFloat(1), CGFloat(1)) }
+        
+        Observable.of(hsb_low, hsb_high)
+            .merge()
+            .subscribeNext { [weak self] (h, s, b) in
+                self?.view.backgroundColor = UIColor(hue: h, saturation: s, brightness: b, alpha: 1)
+            }.addDisposableTo(disposeBag)
     }
 
     override func didReceiveMemoryWarning() {
